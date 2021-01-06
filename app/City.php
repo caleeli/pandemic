@@ -40,14 +40,4 @@ class City extends Model
             return $city->toArray();
         }
     }
-
-    //public function getStateAttribute()
-    //{
-    //    $user = Auth::user();
-    //    if (!$user || !$user->game) {
-    //        return [];
-    //    }
-    //    $state = $user->game->states()->where('city_id', $this->getKey())->first();
-    //    return $state ? $state->toArray() : [];
-    //}
 }

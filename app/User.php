@@ -93,7 +93,7 @@ class User extends Authenticatable
             $this->game_id = $game->getKey();
         }
         foreach ($game->cities as $city) {
-            $city->pivot->infection = 0;
+            $city->pivot->infection = max(0, \random_int(-2, 2));
             $city->pivot->save();
         }
         $i = \random_int(0, count($game->cities)-1);

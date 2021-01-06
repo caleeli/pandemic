@@ -28,12 +28,25 @@
             :cx="city.x"
             :cy="city.y"
             :r="2 + city.points * 0.5"
-            stroke="white"
+            :stroke="cityColor(city)"
             stroke-width="1"
             :fill="city.color"
             fill-opacity="0.7"
             :class="{ citySelected: city === selectedCity }"
           ></circle>
+          <text
+            v-for="(city, index) in cities"
+            :key="`text-${index}`"
+            :x="city.x"
+            :y="city.y"
+            text-anchor="middle"
+            stroke="black"
+            stroke-width="0.5px"
+            dy=".3em"
+            font-size="3"
+          >
+            {{ city.pivot.infection }}
+          </text>
           <g
             v-for="(player, index) in players"
             :key="`player-${index}`"
@@ -143,6 +156,13 @@ export default {
     },
   },
   methods: {
+    cityColor(city) {
+      const i = ((city.pivot.infection * 1) / 10) * 255,
+        r = 255,
+        g = 255 - i,
+        b = 255 - i;
+      return `rgb(${r},${g},${b})`;
+    },
     playerPos(player) {
       const city = this.cities.find((city) => city.id == player.city_id);
       return `${city.x}, ${city.y}`;
@@ -236,7 +256,12 @@ export default {
     },
     clickMap(event) {
       this.selectCity(event);
-      /*const pos = this.getPosition(event);
+      if (this.editMode) {
+        this.placeCity(event);
+      }
+    },
+    placeCity(event) {
+      const pos = this.getPosition(event);
       const city = {
         x: pos.x,
         y: pos.y,
@@ -245,7 +270,7 @@ export default {
         connections: [],
       };
       this.cities.push(city);
-      this.$api.cities.call(null, 'addCity', city);*/
+      this.$api.cities.call(null, "addCity", city);
     },
     moveMap(event) {
       /*const pos = this.getPosition(event);
