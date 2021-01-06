@@ -8,6 +8,6 @@ class City
 {
     public function saved()
     {
-        UpdateMap::dispatch();
+        //UpdateMap::dispatch();
     }
 }

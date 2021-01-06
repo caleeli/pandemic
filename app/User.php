@@ -86,20 +86,25 @@ class User extends Authenticatable
 
     public function resetGame()
     {
-        $game = $this->game;
-        if (!$game) {
-            $game = new Game();
-            $game->save();
-            $this->game_id = $game->getKey();
+        if ($this->game) {
+            //$this->game->delete();
         }
+        $game = new Game();
+        $game->save();
+        $this->game_id = $game->getKey();
         foreach ($game->cities as $city) {
             $city->pivot->infection = max(0, \random_int(-2, 2));
+            $city->pivot->artifacts = [];
             $city->pivot->save();
         }
         $i = \random_int(0, count($game->cities)-1);
         $city = $game->cities[$i];
         $this->city_id = $city->getKey();
         $this->save();
-        UpdateMap::dispatch();
+        $game->runGame();
+        UpdateMap::dispatch($game);
+        return [
+            'game_id' => $game->getKey(),
+        ];
     }
 }

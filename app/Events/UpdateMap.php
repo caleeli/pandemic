@@ -2,11 +2,9 @@
 
 namespace App\Events;
 
+use App\Game;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -15,14 +13,16 @@ class UpdateMap implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $gameId;
+
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Game $game)
     {
-        //
+        $this->gameId = $game->getKey();
     }
 
     /**
@@ -38,5 +38,10 @@ class UpdateMap implements ShouldBroadcastNow
     public function broadcastAs()
     {
         return 'UpdateMap';
+    }
+
+    public function broadcastWith()
+    {
+        return ['game_id' => $this->gameId];
     }
 }

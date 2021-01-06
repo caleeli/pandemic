@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Jobs\RunGame;
 use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
@@ -17,10 +18,10 @@ class Game extends Model
         static::created(function ($game) {
             foreach (City::all() as $city) {
                 $state = new State([
-                    'city_id' => $city->getKey(),
-                    'game_id' => $game->getKey(),
                     'infection' => 0,
                 ]);
+                $state->city_id = $city->getKey();
+                $state->game_id = $game->getKey();
                 $state->save();
             }
         });
@@ -29,7 +30,8 @@ class Game extends Model
     public function cities()
     {
         return $this->belongsToMany(City::class, 'states')
-            ->withPivot('infection');
+            ->using(State::class)
+            ->withPivot('infection', 'artifacts');
     }
 
     public function states()
@@ -50,5 +52,10 @@ class Game extends Model
     public function getPlayersAttribute()
     {
         return $this->players()->get();
+    }
+
+    public function runGame()
+    {
+        RunGame::dispatch($this)->delay(now()->addSeconds(5));
     }
 }

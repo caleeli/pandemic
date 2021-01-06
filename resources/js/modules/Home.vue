@@ -47,6 +47,25 @@
           >
             {{ city.pivot.infection }}
           </text>
+          <transition-group
+            name="list"
+            tag="g"
+          >
+            <text
+              v-for="(message, index) in messages"
+              :key="`message-${index}`"
+              :x="message.x"
+              :y="message.y - 1"
+              text-anchor="middle"
+              stroke="black"
+              stroke-width="0.5px"
+              dy=".3em"
+              font-size="3"
+              opacity="0"
+            >
+              {{ message.message }}
+            </text>
+          </transition-group>
           <g
             v-for="(player, index) in players"
             :key="`player-${index}`"
@@ -84,6 +103,8 @@
 
 <script>
 import world from "../../images/world.jpg";
+import { set } from "lodash";
+
 const colors = ["pink", "yellow", "lightgreen", "cyan"];
 const playerColors = ["white", "blue", "red", "green"];
 const editMode = false;
@@ -100,30 +121,49 @@ export default {
   mixins: [window.ResourceMixin],
   data() {
     return {
-      editMode,
+      cities: [],
       colors,
+      editMode,
+      game: this.$api.user[window.userId].row(gameApiParams),
+      gameId: 0,
+      messages: [],
       playerColors,
-      world,
+      players: [],
       posX: 0,
       posY: 0,
-      cities: [],
-      players: [],
       selectedCity: null,
-      game: this.$api.user[window.userId].row(gameApiParams),
+      world,
     };
   },
   watch: {
     game: {
       deep: true,
       handler() {
-        this.cities.splice(0);
         this.players.splice(0);
-        this.game.relationships.game.attributes.cities.forEach((dbC) => {
+        this.messages.splice(0);
+        this.game.relationships.game.attributes.cities.forEach((dbC, index) => {
           dbC.x = dbC.x * 1;
           dbC.y = dbC.y * 1;
-          this.cities.push({
-            ...dbC,
-          });
+          const city = this.cities[index];
+          if (city) {
+            const deltInf = dbC.pivot.infection - city.pivot.infection;
+            Object.assign(city, dbC);
+            // Add a message over the map
+            if (deltInf > 0)
+              this.messages.push({
+                x: city.x,
+                y: city.y,
+                message: `+${deltInf}`,
+              });
+            else if (deltInf < 0)
+              this.messages.push({
+                x: city.x,
+                y: city.y,
+                message: `${deltInf}`,
+              });
+          } else {
+            this.cities.push(dbC);
+          }
         });
         this.game.relationships.game.attributes.players.forEach((player) => {
           this.players.push(player);
@@ -135,6 +175,12 @@ export default {
           this.posX = this.selectedCity.x;
           this.posY = this.selectedCity.y;
         }
+      },
+    },
+    "$root.user": {
+      deep: true,
+      handler() {
+        this.game_id = this.$root.user.attributes.game_id;
       },
     },
   },
@@ -191,7 +237,10 @@ export default {
       });
     },
     resetGame() {
-      this.$api.users.call(window.userId, "resetGame", {});
+      this.$api.users.call(window.userId, "resetGame", {}).then((response) => {
+        this.gameId = response.game_id;
+        this.refreshMap();
+      });
     },
     randomConns() {
       for (let i = 0; i < 6; i++) {
@@ -292,11 +341,15 @@ export default {
       this.posX = city.x;
       this.posY = city.y;
     },
+    refreshMap() {
+      this.$api.users.refresh(this.game, gameApiParams);
+    },
   },
   mounted() {
     window.Echo.channel(`PublicGame`).listen(".UpdateMap", (e) => {
-      //this.$api.cities.refresh(this.dbCities, { per_page: -1 });
-      this.$api.users.refresh(this.game, gameApiParams);
+      if (e.game_id == this.gameId) {
+        this.refreshMap();
+      }
     });
   },
 };
@@ -327,7 +380,11 @@ export default {
   animation: scales 1.2s ease-in-out infinite alternate;
 }
 .citySelected {
-  animation: citySelected 0.3s ease-in-out infinite alternate;
+  stroke-dasharray: 2;
+  animation: dash 12s linear infinite;
+}
+.message {
+  animation: message 1s ease-in-out forwards;
 }
 @keyframes dash {
   to {
@@ -350,5 +407,25 @@ export default {
     stroke-width: 0.1;
     stroke: black;
   }
+}
+@keyframes message {
+  from {
+    opacity: 1;
+    transform: translate(0px, 0px);
+  }
+  to {
+    opacity: 0;
+    transform: translate(0px, -10px);
+  }
+}
+
+.list-item {
+  opacity: 0;
+}
+.list-enter-active, .list-leave-active {
+  animation: message 1s ease-in-out forwards;
+}
+.list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 </style>
