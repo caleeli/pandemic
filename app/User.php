@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Events\UpdateMap;
 use App\Traits\HasMenus;
 use App\Traits\ModelValidation;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -46,6 +47,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'avatar' => 'array',
+        'city_id' => 'int',
     ];
 
     public function setPasswordAttribute($value)
@@ -67,5 +69,37 @@ class User extends Authenticatable
             'email' => 'required|email',
             'role' => 'required',
         ];
+    }
+
+    public function game()
+    {
+        return $this->belongsTo(Game::class);
+    }
+
+    /**
+     * Ciudad donde se encuentra el usuario
+     */
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function resetGame()
+    {
+        $game = $this->game;
+        if (!$game) {
+            $game = new Game();
+            $game->save();
+            $this->game_id = $game->getKey();
+        }
+        foreach ($game->cities as $city) {
+            $city->pivot->infection = 0;
+            $city->pivot->save();
+        }
+        $i = \random_int(0, count($game->cities)-1);
+        $city = $game->cities[$i];
+        $this->city_id = $city->getKey();
+        $this->save();
+        UpdateMap::dispatch();
     }
 }

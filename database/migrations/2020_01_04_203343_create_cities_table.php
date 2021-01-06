@@ -19,7 +19,6 @@ class CreateCitiesTable extends Migration
             $table->integer('y')->nullable();
             $table->string('color')->nullable();
             $table->integer('points')->default(1);
-            $table->integer('infection')->default(0);
             $table->timestamps();
         });
     }

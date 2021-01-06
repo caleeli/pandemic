@@ -4,10 +4,23 @@ namespace App;
 
 use App\Events\UpdateMap;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class City extends Model
 {
     protected $guarded = [];
+    protected $attributes = [
+        'connections' => '[]',
+    ];
+    protected $casts = [
+        'x' => 'int',
+        'y' => 'int',
+        'points' => 'int',
+        'connections' => 'array',
+    ];
+    protected $appends = [
+        //'state',
+    ];
 
     public function addCity($x, $y, $color)
     {
@@ -19,21 +32,22 @@ class City extends Model
             $closest->y = round(($closest->y + $y) / 2);
             $closest->points = \min(6, $closest->points + 1);
             $closest->save();
-            UpdateMap::dispatch();
             $res = $closest->toArray();
             return $res;
         } else {
             $city = new City(compact('x', 'y', 'color'));
             $city->save();
-            UpdateMap::dispatch();
             return $city->toArray();
         }
     }
 
-    public function resetGame()
-    {
-        City::update([
-            'infection' => 0,
-        ]);
-    }
+    //public function getStateAttribute()
+    //{
+    //    $user = Auth::user();
+    //    if (!$user || !$user->game) {
+    //        return [];
+    //    }
+    //    $state = $user->game->states()->where('city_id', $this->getKey())->first();
+    //    return $state ? $state->toArray() : [];
+    //}
 }

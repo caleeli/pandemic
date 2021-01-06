@@ -21,7 +21,7 @@
         @endforeach
     </head>
     <body>
-        <div id="app" class="flex-center position-ref full-height">
+        <div id="app" class="">
             @yield('content')
         </div>
         @if(Auth::user())
