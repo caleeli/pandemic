@@ -97,9 +97,10 @@
         }"
         @click="centerCity"
       ></div>
-      <div>
+      <div v-if="selectedCity">
         Infección: {{ Math.round(selectedCity.pivot.infection * 10) }}%
       </div>
+      <hr>
       <b-button
         v-for="(hab, index) in habilidades"
         :key="`hab-${index}`"
@@ -290,6 +291,7 @@ export default {
     resetGame() {
       this.$api.users.call(window.userId, "resetGame", {}).then((response) => {
         this.gameId = response.game_id;
+        this.selectedCity = null;
         this.refreshMap();
       });
     },
@@ -426,6 +428,8 @@ export default {
 }
 .base {
   position: relative;
+  user-select: none;
+  cursor: default;
 }
 .juego {
   position: absolute;

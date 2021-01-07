@@ -11,7 +11,7 @@ export default {
                 });
             },
             condition() {
-                return this.selectedCity.id == this.game.attributes.city_id;
+                return this.selectedCity && this.selectedCity.id == this.game.attributes.city_id;
             }
         });
     }

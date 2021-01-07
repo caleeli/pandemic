@@ -122,4 +122,14 @@ class User extends Authenticatable
         $city->pivot->save();
         UpdateMap::dispatch($game);
     }
+    public function volarA($user, $city)
+    {
+        if (!$this->game) {
+            return;
+        }
+        $user = User::find($user);
+        $user->city_id = $city;
+        $user->save();
+        UpdateMap::dispatch($this->game);
+    }
 }
