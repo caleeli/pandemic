@@ -11,6 +11,7 @@
           @click="clickMap"
           @mousemove="moveMap"
         >
+          <text x="280" y="4" font-size="5" stroke-width="2px" dy=".3em">Infection: {{ totalInfection }} %</text>
           <line
             v-for="(connection, index) in connections"
             :key="`connection-${index}`"
@@ -198,6 +199,14 @@ export default {
         });
       });
       return conns;
+    },
+    totalInfection() {
+      let sum = 0, total = 0;
+      this.cities.forEach((city) => {
+        total += 10;
+        sum += city.pivot.infection * 1;
+      });
+      return Math.round(sum / total * 100);
     },
   },
   methods: {
