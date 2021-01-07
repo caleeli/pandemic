@@ -12,9 +12,14 @@ export default {
                 });
             },
             condition() {
-                if (!this.selectedCity) return false;
+                if (
+                    !this.selectedCity ||
+                    this.selectedCity.pivot.artifacts.cerrarFronteras
+                )
+                    return false;
                 let can = false;
                 this.selectedCity.connections.forEach(i => {
+                    if (this.cities[i].pivot.cerrarFronteras) return;
                     can =
                         can ||
                         this.cities[i].id == this.game.attributes.city_id;
