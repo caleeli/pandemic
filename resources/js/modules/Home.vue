@@ -97,13 +97,17 @@
         }"
         @click="centerCity"
       ></div>
+      <div>
+        Infección: {{ Math.round(selectedCity.pivot.infection * 10) }}%
+      </div>
       <b-button
         v-for="(hab, index) in habilidades"
         :key="`hab-${index}`"
+        v-show="handleCondition(hab)"
         @click="handleHabilidad(hab)"
       >
-        {{ hab.text }}<br>
-        <img :src="hab.image" class="hab-image"/>
+        {{ hab.text }}<br />
+        <img :src="hab.image" class="hab-image" />
       </b-button>
     </div>
   </div>
@@ -232,6 +236,9 @@ export default {
     },
   },
   methods: {
+    handleCondition(hab) {
+      return hab.condition.apply(this);
+    },
     handleHabilidad(hab) {
       return hab.handler.apply(this);
     },
@@ -414,6 +421,8 @@ export default {
   width: 320px;
   height: 128px;
   overflow: hidden;
+  border: 4px double black;
+  margin-bottom: 4px;
 }
 .base {
   position: relative;

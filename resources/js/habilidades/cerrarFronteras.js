@@ -1,4 +1,4 @@
-import image from '../../images/cerrar_frontera.jpg';
+import image from "../../images/cerrar_frontera.jpg";
 
 export default {
     mounted() {
@@ -9,6 +9,9 @@ export default {
                 this.$api.users.call(window.userId, "cerrarFronteras", {
                     city: this.selectedCity.id
                 });
+            },
+            condition() {
+                return this.selectedCity.id == this.game.attributes.city_id;
             }
         });
     }
