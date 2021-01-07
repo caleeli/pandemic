@@ -122,6 +122,21 @@ class User extends Authenticatable
         $city->pivot->save();
         UpdateMap::dispatch($game);
     }
+
+    public function cuarentena($city, $time)
+    {
+        if (!$this->game) {
+            return;
+        }
+        $game = $this->game;
+        $city = $game->cities->where('id', $city)->first();
+        $a = $city->pivot->artifacts;
+        $a['cuarentena'] = $game->time + $time;
+        $city->pivot->artifacts = $a;
+        $city->pivot->save();
+        UpdateMap::dispatch($this->game);
+    }
+
     public function volarA($user, $city)
     {
         if (!$this->game) {

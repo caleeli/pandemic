@@ -11,6 +11,16 @@
           @click="clickMap"
           @mousemove="moveMap"
         >
+          <text
+            v-if="game.relationships"
+            x="4"
+            y="4"
+            font-size="5"
+            stroke-width="2px"
+            dy=".3em"
+          >
+            Time: {{ game.relationships.game.attributes.time }}
+          </text>
           <text x="280" y="4" font-size="5" stroke-width="2px" dy=".3em">
             Infection: {{ totalInfection }} %
           </text>
@@ -98,14 +108,15 @@
         @click="centerCity"
       ></div>
       <div v-if="selectedCity">
-        Infección: {{ Math.round(selectedCity.pivot.infection * 10) }}%
+        Infection: {{ Math.round(selectedCity.pivot.infection * 10) }}%
       </div>
-      <hr>
+      <hr />
       <b-button
         v-for="(hab, index) in habilidades"
         :key="`hab-${index}`"
         v-show="handleCondition(hab)"
         @click="handleHabilidad(hab)"
+        :disabled="handleRunning(hab)"
       >
         {{ hab.text }}<br />
         <img :src="hab.image" class="hab-image" />
@@ -203,6 +214,9 @@ export default {
     },
   },
   computed: {
+    $game() {
+      return this.game.relationships && this.game.relationships.game;
+    },
     connections() {
       const conns = [];
       this.cities.forEach((city) => {
@@ -237,6 +251,9 @@ export default {
     },
   },
   methods: {
+    handleRunning(hab) {
+      return hab.running.apply(this);
+    },
     handleCondition(hab) {
       return hab.condition.apply(this);
     },

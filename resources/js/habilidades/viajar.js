@@ -25,7 +25,8 @@ export default {
                         this.cities[i].id == this.game.attributes.city_id;
                 });
                 return can;
-            }
+            },
+            running() {},
         });
     }
 };

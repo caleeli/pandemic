@@ -12,7 +12,10 @@ export default {
             },
             condition() {
                 return this.selectedCity && this.selectedCity.id == this.game.attributes.city_id;
-            }
+            },
+            running() {
+                return this.selectedCity  && this.selectedCity.pivot.artifacts.cerrarFronteras;
+            },
         });
     }
 };
