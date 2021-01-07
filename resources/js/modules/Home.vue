@@ -11,7 +11,9 @@
           @click="clickMap"
           @mousemove="moveMap"
         >
-          <text x="280" y="4" font-size="5" stroke-width="2px" dy=".3em">Infection: {{ totalInfection }} %</text>
+          <text x="280" y="4" font-size="5" stroke-width="2px" dy=".3em">
+            Infection: {{ totalInfection }} %
+          </text>
           <line
             v-for="(connection, index) in connections"
             :key="`connection-${index}`"
@@ -82,6 +84,10 @@
       </div>
     </div>
     <div>
+      <b-button v-if="editMode" @click="randomConns"
+        >Random connections</b-button
+      >
+      <b-button @click="resetGame">Reiniciar juego</b-button>
       <div
         class="map-pan"
         :style="{
@@ -91,16 +97,21 @@
         }"
         @click="centerCity"
       ></div>
-      <b-button v-if="editMode" @click="randomConns"
-        >Random connections</b-button
+      <b-button
+        v-for="(hab, index) in habilidades"
+        :key="`hab-${index}`"
+        @click="handleHabilidad(hab)"
       >
-      <b-button @click="resetGame">Reiniciar juego</b-button>
+        {{ hab.text }}<br>
+        <img :src="hab.image" class="hab-image"/>
+      </b-button>
     </div>
   </div>
 </template>
 
 <script>
 import world from "../../images/world.jpg";
+import habilidades from "../habilidades";
 import { set } from "lodash";
 
 const colors = ["pink", "yellow", "lightgreen", "cyan"];
@@ -116,7 +127,7 @@ const gameApiParams = {
 
 export default {
   path: "/",
-  mixins: [window.ResourceMixin],
+  mixins: [window.ResourceMixin, ...habilidades],
   data() {
     return {
       cities: [],
@@ -124,6 +135,7 @@ export default {
       editMode,
       game: this.$api.user[window.userId].row(gameApiParams),
       gameId: 0,
+      habilidades: [],
       messages: [],
       playerColors,
       players: [],
@@ -139,6 +151,9 @@ export default {
       handler() {
         this.players.splice(0);
         this.messages.splice(0);
+        if (!this.game.relationships.game) {
+          return;
+        }
         this.game.relationships.game.attributes.cities.forEach((dbC, index) => {
           dbC.x = dbC.x * 1;
           dbC.y = dbC.y * 1;
@@ -186,8 +201,14 @@ export default {
     connections() {
       const conns = [];
       this.cities.forEach((city) => {
+        if (city.pivot.artifacts.cerrarFronteras) {
+          return;
+        }
         city.connections.forEach((conn) => {
           const city2 = this.cities[conn];
+          if (city2.pivot.artifacts.cerrarFronteras) {
+            return;
+          }
           conns.push({
             city1: city.id,
             city2: city2.id,
@@ -201,23 +222,29 @@ export default {
       return conns;
     },
     totalInfection() {
-      let sum = 0, total = 0;
+      let sum = 0,
+        total = 0;
       this.cities.forEach((city) => {
         total += 10;
         sum += city.pivot.infection * 1;
       });
-      return Math.round(sum / total * 100);
+      return Math.round((sum / total) * 100);
     },
   },
   methods: {
+    handleHabilidad(hab) {
+      return hab.handler.apply(this);
+    },
     connectionColor(connection) {
       if (!this.game.relationships) {
-        return 'rgba(255, 255, 255, 0.5)';
+        return "rgba(255, 255, 255, 0.5)";
       }
-      const t = this.game.relationships.game.attributes.transmissions.find((t) => {
-        return t.city1 == connection.city1 && t.city2 == connection.city2;
-      });
-      return t ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+      const t = this.game.relationships.game.attributes.transmissions.find(
+        (t) => {
+          return t.city1 == connection.city1 && t.city2 == connection.city2;
+        }
+      );
+      return t ? "rgba(255, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)";
     },
     cityColor(city) {
       const i = ((city.pivot.infection * 1) / 10) * 255,
@@ -444,7 +471,6 @@ export default {
     transform: translate(0px, -10px);
   }
 }
-
 .list-item {
   opacity: 0;
 }
@@ -454,5 +480,8 @@ export default {
 }
 .list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
   opacity: 0;
+}
+.hab-image {
+  width: 128px;
 }
 </style>

@@ -107,4 +107,19 @@ class User extends Authenticatable
             'game_id' => $game->getKey(),
         ];
     }
+
+    /// HABILIDADES
+    public function cerrarFronteras($city)
+    {
+        if (!$this->game) {
+            return;
+        }
+        $game = $this->game;
+        $city = $game->cities->where('id', $city)->first();
+        $a = $city->pivot->artifacts;
+        $a['cerrarFronteras'] = true;
+        $city->pivot->artifacts = $a;
+        $city->pivot->save();
+        UpdateMap::dispatch($game);
+    }
 }

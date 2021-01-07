@@ -52,6 +52,7 @@ class RunGame implements ShouldQueue
         $transmissions = [];
         foreach ($game->cities as $city) {
             $rnd = \random_int(0, 2);
+            if (!empty($city->pivot->artifacts['cerrarFronteras'])) continue;
             if ($rnd) continue;
             if ($city->pivot->infection > 0 && $city->pivot->infection < 10) {
                 $city->pivot->infection = min(10, $city->pivot->infection + 1);
@@ -61,6 +62,7 @@ class RunGame implements ShouldQueue
                 if ($rnd) continue;
                 $index = $city->connections[array_rand($city->connections)];
                 $c = $game->cities[$index];
+                if (!empty($c->pivot->artifacts['cerrarFronteras'])) continue;
                 $c->pivot->infection = min(10, $c->pivot->infection + 1);
                 $c->pivot->save();
                 $transmissions[] = [
