@@ -8,9 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Game extends Model
 {
     protected $guarded = [];
+    protected $attributes = [
+        'transmissions' => '[]',
+    ];
     protected $appends = [
         'cities',
         'players',
+    ];
+    protected $casts = [
+        'transmissions' => 'array',
     ];
 
     protected static function booted()

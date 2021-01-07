@@ -23,7 +23,6 @@ class RunGame implements ShouldQueue
      */
     public function __construct(Game $game)
     {
-        \Log::info('trigger RunGame');
         $this->gameId = $game->getKey();
     }
 
@@ -34,7 +33,6 @@ class RunGame implements ShouldQueue
      */
     public function handle()
     {
-        \Log::info('handle RunGame');
         $game = Game::find($this->gameId);
         if (!$game) {
             // Game was closed
@@ -51,23 +49,29 @@ class RunGame implements ShouldQueue
             return;
         }
         $game->cities->keyBy('id');
+        $transmissions = [];
         foreach ($game->cities as $city) {
-            $artifacts = $city->pivot->artifacts ?? [];
+            $rnd = \random_int(0, 2);
+            if ($rnd) continue;
             if ($city->pivot->infection > 0 && $city->pivot->infection < 10) {
                 $city->pivot->infection = min(10, $city->pivot->infection + 1);
-                $artifacts['message'] = '+';
             }
-            $rnd = \random_int(0, $city->pivot->infection);
-            if ($rnd > 3) {
+            for($i = 0, $l = $city->pivot->infection * 1; $i < $l; $i++ ) {
+                $rnd = \random_int(0, 2);
+                if ($rnd) continue;
                 $index = $city->connections[array_rand($city->connections)];
                 $c = $game->cities[$index];
                 $c->pivot->infection = min(10, $c->pivot->infection + 1);
                 $c->pivot->save();
+                $transmissions[] = [
+                    'city1' => $city->id,
+                    'city2' => $c->id,
+                ];
             }
-            $city->pivot->artifacts = $artifacts;
             $city->pivot->save();
         }
         $game->time++;
+        $game->transmissions = $transmissions;
         $game->save();
         UpdateMap::dispatch($game);
         ///

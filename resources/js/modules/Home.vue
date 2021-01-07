@@ -18,7 +18,7 @@
             :y1="connection.y1"
             :x2="connection.x2"
             :y2="connection.y2"
-            stroke="rgba(255,255,255,0.5)"
+            :stroke="connectionColor(connection)"
             class="path"
             stroke-width="0.5"
           ></line>
@@ -47,10 +47,7 @@
           >
             {{ city.pivot.infection }}
           </text>
-          <transition-group
-            name="list"
-            tag="g"
-          >
+          <transition-group name="list" tag="g">
             <text
               v-for="(message, index) in messages"
               :key="`message-${index}`"
@@ -153,13 +150,13 @@ export default {
               this.messages.push({
                 x: city.x,
                 y: city.y,
-                message: `+${deltInf}`,
+                message: `+`,
               });
             else if (deltInf < 0)
               this.messages.push({
                 x: city.x,
                 y: city.y,
-                message: `${deltInf}`,
+                message: `-`,
               });
           } else {
             this.cities.push(dbC);
@@ -191,6 +188,8 @@ export default {
         city.connections.forEach((conn) => {
           const city2 = this.cities[conn];
           conns.push({
+            city1: city.id,
+            city2: city2.id,
             x1: city.x,
             y1: city.y,
             x2: city2.x,
@@ -202,6 +201,15 @@ export default {
     },
   },
   methods: {
+    connectionColor(connection) {
+      if (!this.game.relationships) {
+        return 'rgba(255, 255, 255, 0.5)';
+      }
+      const t = this.game.relationships.game.attributes.transmissions.find((t) => {
+        return t.city1 == connection.city1 && t.city2 == connection.city2;
+      });
+      return t ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+    },
     cityColor(city) {
       const i = ((city.pivot.infection * 1) / 10) * 255,
         r = 255,
@@ -342,7 +350,13 @@ export default {
       this.posY = city.y;
     },
     refreshMap() {
-      this.$api.users.refresh(this.game, gameApiParams);
+      if (!this.gameId && this.$root.user.attributes) {
+        this.gameId = this.$root.user.attributes.game_id;
+      }
+      if (this.gameId) {
+        gameApiParams.time = new Date().getTime();
+        this.$api.users.refresh(this.game, gameApiParams);
+      }
     },
   },
   mounted() {
@@ -351,6 +365,9 @@ export default {
         this.refreshMap();
       }
     });
+    setInterval(() => {
+      this.refreshMap();
+    }, 2000);
   },
 };
 </script>
@@ -374,7 +391,7 @@ export default {
 }
 .path {
   stroke-dasharray: 3;
-  animation: dash 12s linear infinite;
+  animation: dash 12s linear infinite reverse;
 }
 .scales * {
   animation: scales 1.2s ease-in-out infinite alternate;
@@ -422,7 +439,8 @@ export default {
 .list-item {
   opacity: 0;
 }
-.list-enter-active, .list-leave-active {
+.list-enter-active,
+.list-leave-active {
   animation: message 1s ease-in-out forwards;
 }
 .list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
