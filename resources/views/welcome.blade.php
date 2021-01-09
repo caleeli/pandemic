@@ -66,12 +66,12 @@
             @if (Route::has('login'))
                 <div class="top-right links">
                     @auth
-                        <a href="{{ url('/home') }}">Home</a>
+                        <a href="{{ url('/home') }}">Jugar</a>
                     @else
-                        <a href="{{ route('login') }}">Login</a>
+                        <a href="{{ route('login') }}">Ingresar</a>
 
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
+                            <a href="{{ route('register') }}">Registrarse</a>
                         @endif
                     @endauth
                 </div>
@@ -79,13 +79,9 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Coredump
+                    Pandemic
                 </div>
 
-                <div class="links">
-                    <a href="/api/documentation">Docs</a>
-                    <a href="https://github.com/caleeli/coredump-app.git">GitHub</a>
-                </div>
             </div>
         </div>
     </body>
