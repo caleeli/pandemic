@@ -102,6 +102,10 @@ class User extends Authenticatable
         $this->city_id = $city->getKey();
         $this->save();
         $game->runGame();
+        foreach(User::all() as $user) {
+            $user->game_id = $game->id;
+            $user->save();
+        }
         UpdateMap::dispatch($game);
         return [
             'game_id' => $game->getKey(),

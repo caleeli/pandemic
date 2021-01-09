@@ -167,6 +167,7 @@ export default {
       handler() {
         this.players.splice(0);
         this.messages.splice(0);
+        this.gameId = this.game.attributes.game_id;
         if (!this.game.relationships.game) {
           return;
         }
