@@ -8,7 +8,8 @@ export default {
             image,
             handler() {
                 this.$api.users.call(window.userId, "cerrarFronteras", {
-                    city: this.selectedCity.id
+                    city: this.selectedCity.id,
+                    time: 14,
                 });
             },
             condition() {
@@ -20,7 +21,8 @@ export default {
             running() {
                 return (
                     this.selectedCity &&
-                    this.selectedCity.pivot.artifacts.cerrarFronteras
+                    this.selectedCity.pivot.artifacts.cerrarFronteras >
+                    this.$game.attributes.time
                 );
             }
         });

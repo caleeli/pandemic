@@ -149,6 +149,7 @@
                   v-show="handleCondition(hab)"
                   @click.stop="handleHabilidad(hab)"
                   :disabled="handleRunning(hab)"
+                  :title="hab.text"
                 >
                   <i
                     v-for="(icon, ii) in hab.icon"
@@ -264,6 +265,9 @@ export default {
     },
   },
   computed: {
+    currentCity() {
+      return this.game.attributes && this.cities.find(c => c.id == this.game.attributes.city_id);
+    },
     $game() {
       return this.game.relationships && this.game.relationships.game;
     },

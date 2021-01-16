@@ -61,7 +61,8 @@ class RunGame implements ShouldQueue
                 $city->pivot->save();
             }
             // Transmision por fronteras
-            if (!empty($city->pivot->artifacts['cerrarFronteras'])) {
+            $cerrarFronteras = ($city->pivot->artifacts['cerrarFronteras'] ?? 0) > $game->time;
+            if ($cerrarFronteras) {
                 continue;
             }
             for ($i = 0, $l = $city->pivot->infection * 1; $i < $l; $i++) {
@@ -71,7 +72,8 @@ class RunGame implements ShouldQueue
                 }
                 $index = $city->connections[array_rand($city->connections)];
                 $c = $game->cities[$index];
-                if (!empty($c->pivot->artifacts['cerrarFronteras'])) {
+                $cerrarFronteras = ($c->pivot->artifacts['cerrarFronteras'] ?? 0) > $game->time;
+                if ($cerrarFronteras) {
                     continue;
                 }
                 $c->pivot->infection = min(10, $c->pivot->infection + 1);

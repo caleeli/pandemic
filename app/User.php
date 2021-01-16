@@ -113,7 +113,7 @@ class User extends Authenticatable
     }
 
     /// HABILIDADES
-    public function cerrarFronteras($city)
+    public function cerrarFronteras($city, $time)
     {
         if (!$this->game) {
             return;
@@ -121,7 +121,7 @@ class User extends Authenticatable
         $game = $this->game;
         $city = $game->cities->where('id', $city)->first();
         $a = $city->pivot->artifacts;
-        $a['cerrarFronteras'] = true;
+        $a['cerrarFronteras'] = $game->time + $time;
         $city->pivot->artifacts = $a;
         $city->pivot->save();
         UpdateMap::dispatch($game);

@@ -15,7 +15,8 @@ export default {
             condition() {
                 if (
                     !this.selectedCity ||
-                    this.selectedCity.pivot.artifacts.cerrarFronteras
+                    this.selectedCity.pivot.artifacts.cerrarFronteras > this.$game.attributes.time ||
+                    this.currentCity.pivot.artifacts.cerrarFronteras > this.$game.attributes.time
                 )
                     return false;
                 let can = false;
