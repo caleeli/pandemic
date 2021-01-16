@@ -4,6 +4,7 @@ export default {
     mounted() {
         this.habilidades.push({
             text: "Cuarentena 14 dias",
+            icon: ["fas fa-biohazard"],
             image,
             handler() {
                 this.$api.users.call(window.userId, "cuarentena", {
@@ -18,8 +19,12 @@ export default {
                 );
             },
             running() {
-                return this.selectedCity  && this.selectedCity.pivot.artifacts.cuarentena > this.$game.attributes.time;
-            },
+                return (
+                    this.selectedCity &&
+                    this.selectedCity.pivot.artifacts.cuarentena >
+                        this.$game.attributes.time
+                );
+            }
         });
     }
 };

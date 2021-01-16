@@ -4,6 +4,7 @@ export default {
     mounted() {
         this.habilidades.push({
             text: "Cerrar Fronteras",
+            icon: ["fa fa-plane-slash"],
             image,
             handler() {
                 this.$api.users.call(window.userId, "cerrarFronteras", {
@@ -11,11 +12,17 @@ export default {
                 });
             },
             condition() {
-                return this.selectedCity && this.selectedCity.id == this.game.attributes.city_id;
+                return (
+                    this.selectedCity &&
+                    this.selectedCity.id == this.game.attributes.city_id
+                );
             },
             running() {
-                return this.selectedCity  && this.selectedCity.pivot.artifacts.cerrarFronteras;
-            },
+                return (
+                    this.selectedCity &&
+                    this.selectedCity.pivot.artifacts.cerrarFronteras
+                );
+            }
         });
     }
 };

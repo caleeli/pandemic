@@ -40,13 +40,27 @@
             :key="`city-${index}`"
             :cx="city.x"
             :cy="city.y"
-            :r="2 + city.points * 0.5"
+            :r="radius(city)"
             :stroke="cityColor(city)"
             stroke-width="1"
             :fill="city.color"
             fill-opacity="0.7"
             :class="{ citySelected: city === selectedCity }"
           ></circle>
+          <!--
+          <foreignObject
+            v-for="(city, index) in cities"
+            :key="`icons-${index}`"
+            :x="city.x - radius(city)"
+            :y="city.y - radius(city)"
+            :width="radius(city)*2"
+            :height="radius(city)*2"
+          >
+            <div class="icons">
+              <i class="fa fa-ban text-danger" />
+            </div>
+          </foreignObject>
+          -->
           <text
             v-for="(city, index) in cities"
             :key="`text-${index}`"
@@ -90,6 +104,61 @@
             />
             <circle cx="64" cy="49.3" style="fill: #eeefee" r="16.525" />
           </g>
+          <!-- -->
+          <pattern id="map_focus" patternUnits="userSpaceOnUse" 
+                  :width="`${w}px`" :height="`${h}px`">
+            <image :href="world" :width="`${w}px`" :height="`${h}px`" />
+          </pattern>
+          <pattern id="background" patternUnits="userSpaceOnUse" 
+                  :width="`120px`" :height="`80px`">
+            <image :href="background_bio" :width="`120px`" :height="`80px`" />
+          </pattern>
+          <rect
+            x="-1"
+            y="140"
+            width="322"
+            height="27"
+            stroke="#a2a23e"
+            stroke-width="1"
+            fill="url(#background)"
+          />
+          <circle
+            v-if="selectedCity"
+            :cx="(posX / 320) * w"
+            :cy="(posY / 160) * h"
+            :r="24"
+            stroke="#a28626"
+            stroke-width="2"
+            fill="url(#map_focus)"
+            :transform="`translate(${-((posX / 320) * w - 26)}, ${-((posY / 160) * h - 136)})`"
+          ></circle>
+          <foreignObject
+            :x="64"
+            :y="142"
+            :width="280"
+            :height="18"
+          >
+            <div class="d-flex flex-row">
+              <div class="bg-text">
+                Infection: <b>{{ Math.round(selectedCity.pivot.infection * 10) }}%</b>
+              </div>
+              <div class="bg-text">
+                <b-button
+                  v-for="(hab, index) in habilidades"
+                  :key="`hab-${index}`"
+                  v-show="handleCondition(hab)"
+                  @click.stop="handleHabilidad(hab)"
+                  :disabled="handleRunning(hab)"
+                >
+                  <i
+                    v-for="(icon, ii) in hab.icon"
+                    :key="`icon-${index}-${ii}`"
+                     :class="`${icon} ${ii >0 ? 'over' : ''}`"
+                  />
+                </b-button>
+              </div>
+            </div>
+          </foreignObject>
         </svg>
       </div>
     </div>
@@ -98,35 +167,13 @@
         >Random connections</b-button
       >
       <b-button @click="resetGame">Reiniciar juego</b-button>
-      <div
-        class="map-pan"
-        :style="{
-          backgroundImage: `url(${world})`,
-          backgroundPositionX: `-${(posX / 320) * 3360 - 160}px`,
-          backgroundPositionY: `-${(posY / 160) * 1705 - 64}px`,
-        }"
-        @click="centerCity"
-      ></div>
-      <div v-if="selectedCity">
-        Infection: {{ Math.round(selectedCity.pivot.infection * 10) }}%
-      </div>
-      <hr />
-      <b-button
-        v-for="(hab, index) in habilidades"
-        :key="`hab-${index}`"
-        v-show="handleCondition(hab)"
-        @click="handleHabilidad(hab)"
-        :disabled="handleRunning(hab)"
-      >
-        {{ hab.text }}<br />
-        <img :src="hab.image" class="hab-image" />
-      </b-button>
     </div>
   </div>
 </template>
 
 <script>
 import world from "../../images/world.jpg";
+import background_bio from "../../images/biological_cells_pattern.jpg";
 import habilidades from "../habilidades";
 import { set } from "lodash";
 
@@ -146,6 +193,8 @@ export default {
   mixins: [window.ResourceMixin, ...habilidades],
   data() {
     return {
+      dx:-22,dy:-134,w:3360*0.25,h:1705*0.25,
+      background_bio,
       cities: [],
       colors,
       editMode,
@@ -252,6 +301,9 @@ export default {
     },
   },
   methods: {
+    radius(city) {
+      return 2 + city.points * 0.5;
+    },
     handleRunning(hab) {
       return hab.running.apply(this);
     },
@@ -514,5 +566,45 @@ export default {
 }
 .hab-image {
   width: 128px;
+}
+.icons {
+  font-size: 6px;
+  opacity: 0.4;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bg-text {
+  background-color: #142e3dda;
+  font-size: 4px;
+  border-radius: 1px;
+  color: white;
+  padding: 0px 4px;
+  margin-bottom: 1px;
+  margin-right: 2px;
+}
+.bg-text button {
+  background-color: #142e3dda;
+  font-size: 4px;
+  border-radius: 1px;
+  border-color: #a28626;
+  color: white;
+  padding: 1px 2px;
+  margin-bottom: 1px;
+  margin-right: 1px;
+  text-transform: none;
+  position: relative;
+}
+.bg-text button .over {
+  position: absolute;
+  left:0px;
+  top:2px;
+  width: 100%;
+  opacity: 0.7;
+}
+.bg-text button:disabled {
+  background-color: #a28626;
+  border-color: #a2a23e;
 }
 </style>

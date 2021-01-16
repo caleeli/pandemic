@@ -4,6 +4,7 @@ export default {
     mounted() {
         this.habilidades.push({
             text: "Volar acá",
+            icon: ["fas fa-plane", "fa stop"],
             image,
             handler() {
                 this.$api.users.call(window.userId, "volarA", {
@@ -26,7 +27,7 @@ export default {
                 });
                 return can;
             },
-            running() {},
+            running() {}
         });
     }
 };
