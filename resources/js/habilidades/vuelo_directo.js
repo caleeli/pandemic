@@ -1,16 +1,9 @@
 export default {
-    methods: {
-        canNotFly(city) {
-            return (
-                city.pivot.artifacts.cerrarFronteras >
-                this.$game.attributes.time
-            );
-        }
-    },
+    methods: {},
     mounted() {
         this.habilidades.push({
-            text: "Volar a",
-            icon: ["fas fa-plane-departure"],
+            text: "Vuelo directo a",
+            icon: ["fas fa-plane"],
             handler() {
                 const cities = this.currentCity.connections.filter(i => {
                     return !this.canNotFly(this.cities[i]);

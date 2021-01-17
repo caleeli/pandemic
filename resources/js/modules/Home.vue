@@ -34,6 +34,11 @@
             :stroke="connectionColor(connection)"
             class="path"
             stroke-width="0.5"
+            :class="{
+              canChooseCityNoConnection: chooseCityMode.enabled,
+              canChooseCityConnection:
+                chooseCityMode.enabled && connection.city1 === currentCity.id,
+            }"
           ></line>
           <circle
             v-for="(city, index) in cities"
@@ -45,7 +50,12 @@
             stroke-width="1"
             :fill="city.color"
             fill-opacity="0.7"
-            :class="{ citySelected: city === selectedCity }"
+            :class="{
+              citySelected: city === selectedCity,
+              canChooseCityEnabled:
+                chooseCityMode.enabled && city !== currentCity,
+              canChooseCityCity: chooseCityMode.cities.indexOf(index) > -1,
+            }"
           ></circle>
           <!--
           <foreignObject
@@ -105,12 +115,20 @@
             <circle cx="64" cy="49.3" style="fill: #eeefee" r="16.525" />
           </g>
           <!-- -->
-          <pattern id="map_focus" patternUnits="userSpaceOnUse" 
-                  :width="`${w}px`" :height="`${h}px`">
+          <pattern
+            id="map_focus"
+            patternUnits="userSpaceOnUse"
+            :width="`${w}px`"
+            :height="`${h}px`"
+          >
             <image :href="world" :width="`${w}px`" :height="`${h}px`" />
           </pattern>
-          <pattern id="background" patternUnits="userSpaceOnUse" 
-                  :width="`120px`" :height="`80px`">
+          <pattern
+            id="background"
+            patternUnits="userSpaceOnUse"
+            :width="`120px`"
+            :height="`80px`"
+          >
             <image :href="background_bio" :width="`120px`" :height="`80px`" />
           </pattern>
           <rect
@@ -130,17 +148,16 @@
             stroke="#a28626"
             stroke-width="2"
             fill="url(#map_focus)"
-            :transform="`translate(${-((posX / 320) * w - 26)}, ${-((posY / 160) * h - 136)})`"
+            :transform="`translate(${-((posX / 320) * w - 26)}, ${-(
+              (posY / 160) * h -
+              136
+            )})`"
           ></circle>
-          <foreignObject
-            :x="64"
-            :y="142"
-            :width="280"
-            :height="18"
-          >
+          <foreignObject :x="64" :y="142" :width="280" :height="18">
             <div class="d-flex flex-row">
-              <div class="bg-text">
-                Infection: <b>{{ Math.round(selectedCity.pivot.infection * 10) }}%</b>
+              <div class="bg-text" v-if="selectedCity">
+                Infection:
+                <b>{{ Math.round(selectedCity.pivot.infection * 10) }}%</b>
               </div>
               <div class="bg-text">
                 <b-button
@@ -154,7 +171,7 @@
                   <i
                     v-for="(icon, ii) in hab.icon"
                     :key="`icon-${index}-${ii}`"
-                     :class="`${icon} ${ii >0 ? 'over' : ''}`"
+                    :class="`${icon} ${ii > 0 ? 'over' : ''}`"
                   />
                 </b-button>
               </div>
@@ -194,7 +211,13 @@ export default {
   mixins: [window.ResourceMixin, ...habilidades],
   data() {
     return {
-      dx:-22,dy:-134,w:3360*0.25,h:1705*0.25,
+      chooseCityMode: {
+        enabled: false,
+        cities: [],
+        resolve: null,
+      },
+      w: 3360 * 0.25,
+      h: 1705 * 0.25,
       background_bio,
       cities: [],
       colors,
@@ -266,7 +289,10 @@ export default {
   },
   computed: {
     currentCity() {
-      return this.game.attributes && this.cities.find(c => c.id == this.game.attributes.city_id);
+      return (
+        this.game.attributes &&
+        this.cities.find((c) => c.id == this.game.attributes.city_id)
+      );
     },
     $game() {
       return this.game.relationships && this.game.relationships.game;
@@ -274,12 +300,12 @@ export default {
     connections() {
       const conns = [];
       this.cities.forEach((city) => {
-        if (city.pivot.artifacts.cerrarFronteras) {
+        if (this.canNotFly(city)) {
           return;
         }
         city.connections.forEach((conn) => {
           const city2 = this.cities[conn];
-          if (city2.pivot.artifacts.cerrarFronteras) {
+          if (this.canNotFly(city2)) {
             return;
           }
           conns.push({
@@ -305,6 +331,13 @@ export default {
     },
   },
   methods: {
+    chooseCity(cities = null) {
+      this.chooseCityMode.enabled = true;
+      this.chooseCityMode.cities = cities;
+      return new Promise((resolve) => {
+        this.chooseCityMode.resolve = resolve;
+      });
+    },
     radius(city) {
       return 2 + city.points * 0.5;
     },
@@ -459,14 +492,25 @@ export default {
       this.cities.forEach((c) => {
         const distance =
           (c.x - pos.x) * (c.x - pos.x) + (c.y - pos.y) * (c.y - pos.y);
-        if (!city || distance < min) {
+        if (distance < 20 && (!city || distance < min)) {
           min = distance;
           city = c;
         }
       });
+      if (!city) return;
+      // Valida si esta en modo chooseCity
+      const cityIndex = this.cities.indexOf(city);
+      if (this.chooseCityMode.enabled && this.chooseCityMode.cities.indexOf(cityIndex) === -1) {
+        return;
+      }
+      // Selecciona la city
       this.selectedCity = city;
       this.posX = city.x;
       this.posY = city.y;
+      if (this.chooseCityMode.enabled && this.chooseCityMode.resolve) {
+        this.chooseCityMode.resolve(city);
+      }
+      this.chooseCityMode.enabled = false;
     },
     refreshMap() {
       if (!this.gameId && this.$root.user.attributes) {
@@ -602,13 +646,27 @@ export default {
 }
 .bg-text button .over {
   position: absolute;
-  left:0px;
-  top:2px;
+  left: 0px;
+  top: 2px;
   width: 100%;
   opacity: 0.7;
 }
 .bg-text button:disabled {
   background-color: #a28626;
   border-color: #a2a23e;
+}
+.canChooseCityEnabled {
+  stroke-opacity: 0;
+  fill-opacity: 0.4;
+}
+.canChooseCityCity {
+  stroke-opacity: 1;
+  fill-opacity: 0.7;
+}
+.canChooseCityNoConnection {
+  stroke-opacity: 0.1;
+}
+.canChooseCityConnection {
+  stroke-opacity: 1;
 }
 </style>
