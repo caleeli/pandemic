@@ -15,7 +15,7 @@ export default {
                 const cities = this.currentCity.connections.filter(i => {
                     return !this.canNotFly(this.cities[i]);
                 });
-                this.chooseCity(cities).then(selectedCity => {
+                this.chooseCity(cities, this.currentCity).then(selectedCity => {
                     this.$api.users.call(window.userId, "volarA", {
                         user: this.game.id,
                         city: selectedCity.id

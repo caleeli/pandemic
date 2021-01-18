@@ -28,6 +28,7 @@ class User extends Authenticatable
 
     protected $attributes = [
         'role' => 'admin',
+        'owned_cities' => '[]',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'avatar' => 'array',
         'city_id' => 'int',
+        'owned_cities' => 'array',
     ];
 
     public function setPasswordAttribute($value)
@@ -92,7 +94,9 @@ class User extends Authenticatable
         $game = new Game();
         $game->save();
         $this->game_id = $game->getKey();
+        $cities = [];
         foreach ($game->cities as $city) {
+            $cities[] = $city->id;
             $city->pivot->infection = max(0, \random_int(-2, 2));
             $city->pivot->artifacts = [];
             $city->pivot->save();
@@ -102,8 +106,15 @@ class User extends Authenticatable
         $this->city_id = $city->getKey();
         $this->save();
         $game->runGame();
-        foreach(User::all() as $user) {
+        foreach (User::all() as $user) {
             $user->game_id = $game->id;
+            $owned_cities = [];
+            for ($i=0; $i<3; $i++) {
+                $idx = array_rand($cities);
+                $owned_cities[] = $cities[$idx];
+                \array_splice($cities, $idx, 1);
+            }
+            $user->owned_cities = $owned_cities;
             $user->save();
         }
         UpdateMap::dispatch($game);
@@ -141,14 +152,21 @@ class User extends Authenticatable
         UpdateMap::dispatch($this->game);
     }
 
-    public function volarA($user, $city)
+    public function volarA($user, $city, $cobrar)
     {
         if (!$this->game) {
             return;
         }
         $user = User::find($user);
-        $user->city_id = $city;
-        $user->save();
-        UpdateMap::dispatch($this->game);
+        if (!$cobrar || in_array($cobrar, $user->owned_cities)) {
+            $user->city_id = $city;
+            if ($cobrar) {
+                $owned_cities = $user->owned_cities;
+                array_splice($owned_cities, \array_search($cobrar, $owned_cities), 1);
+                $user->owned_cities = $owned_cities;
+            }
+            $user->save();
+            UpdateMap::dispatch($this->game);
+        }
     }
 }

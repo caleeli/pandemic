@@ -36,9 +36,18 @@
             stroke-width="0.5"
             :class="{
               canChooseCityNoConnection: chooseCityMode.enabled,
-              canChooseCityConnection:
-                chooseCityMode.enabled && connection.city1 === currentCity.id,
             }"
+          ></line>
+          <line
+            v-for="(connection, index) in chooseConnections"
+            :key="`choose-connection-${index}`"
+            :x1="connection.x1"
+            :y1="connection.y1"
+            :x2="connection.x2"
+            :y2="connection.y2"
+            :stroke="connectionColor(connection)"
+            class="path"
+            stroke-width="0.5"
           ></line>
           <circle
             v-for="(city, index) in cities"
@@ -124,6 +133,14 @@
             <image :href="world" :width="`${w}px`" :height="`${h}px`" />
           </pattern>
           <pattern
+            id="map_focus_small"
+            patternUnits="userSpaceOnUse"
+            :width="`${w2}px`"
+            :height="`${h2}px`"
+          >
+            <image :href="world" :width="`${w2}px`" :height="`${h2}px`" />
+          </pattern>
+          <pattern
             id="background"
             patternUnits="userSpaceOnUse"
             :width="`120px`"
@@ -142,14 +159,14 @@
           />
           <circle
             v-if="selectedCity"
-            :cx="(posX / 320) * w"
-            :cy="(posY / 160) * h"
+            :cx="posX * 0.003125 * w"
+            :cy="posY * 0.00625 * h"
             :r="24"
             stroke="#a28626"
             stroke-width="2"
             fill="url(#map_focus)"
-            :transform="`translate(${-((posX / 320) * w - 26)}, ${-(
-              (posY / 160) * h -
+            :transform="`translate(${-(posX * 0.003125 * w - 26)}, ${-(
+              posY * 0.00625 * h -
               136
             )})`"
           ></circle>
@@ -177,6 +194,24 @@
               </div>
             </div>
           </foreignObject>
+          <rect
+            v-for="(city, idx) in ownedCities"
+            :key="`user-city-${city.id}`"
+            :x="(city.x - 4) * 0.003125 * w2"
+            :y="(city.y - 4) * 0.00625 * h2"
+            @click.stop="selectedCity = city"
+            width="16"
+            height="18"
+            :stroke="city.color"
+            stroke-width="0.5"
+            fill="url(#map_focus_small)"
+            :transform="`translate(
+              ${-((city.x - 4) * 0.003125 * w2 - (302 - idx * 17))},
+              ${-((city.y - 4) * 0.00625 * h2 - 136)})`"
+            :class="{
+              citySelected: city === selectedCity,
+            }"
+          ></rect>
         </svg>
       </div>
     </div>
@@ -214,10 +249,13 @@ export default {
       chooseCityMode: {
         enabled: false,
         cities: [],
+        source: null,
         resolve: null,
       },
       w: 3360 * 0.25,
       h: 1705 * 0.25,
+      w2: 3360 * 0.2,
+      h2: 1705 * 0.2,
       background_bio,
       cities: [],
       colors,
@@ -235,6 +273,12 @@ export default {
     };
   },
   watch: {
+    selectedCity() {
+      if (this.selectedCity) {
+        this.posX = this.selectedCity.x;
+        this.posY = this.selectedCity.y;
+      }
+    },
     game: {
       deep: true,
       handler() {
@@ -275,8 +319,6 @@ export default {
           this.selectedCity = this.cities.find(
             (c) => c.id == this.game.attributes.city_id
           );
-          this.posX = this.selectedCity.x;
-          this.posY = this.selectedCity.y;
         }
       },
     },
@@ -288,6 +330,36 @@ export default {
     },
   },
   computed: {
+    chooseConnections() {
+      const connections = [];
+      if (this.chooseCityMode.enabled && this.chooseCityMode.source) {
+        this.chooseCityMode.cities.forEach((index) => {
+          const city = this.chooseCityMode.source;
+          const city2 = this.cities[index];
+          connections.push({
+            city1: city.id,
+            city2: city2.id,
+            x1: city.x,
+            y1: city.y,
+            x2: city2.x,
+            y2: city2.y,
+          });
+        });
+      }
+      return connections;
+    },
+    ownedCities() {
+      const cities = this.cities;
+      return (
+        (this.game.attributes &&
+          cities.filter((city) => {
+            return this.game.attributes.owned_cities.find(
+              (id) => city.id == id
+            );
+          })) ||
+        []
+      );
+    },
     currentCity() {
       return (
         this.game.attributes &&
@@ -298,7 +370,7 @@ export default {
       return this.game.relationships && this.game.relationships.game;
     },
     connections() {
-      const conns = [];
+      const connections = [];
       this.cities.forEach((city) => {
         if (this.canNotFly(city)) {
           return;
@@ -308,7 +380,7 @@ export default {
           if (this.canNotFly(city2)) {
             return;
           }
-          conns.push({
+          connections.push({
             city1: city.id,
             city2: city2.id,
             x1: city.x,
@@ -318,7 +390,7 @@ export default {
           });
         });
       });
-      return conns;
+      return connections;
     },
     totalInfection() {
       let sum = 0,
@@ -331,9 +403,10 @@ export default {
     },
   },
   methods: {
-    chooseCity(cities = null) {
+    chooseCity(cities = null, source) {
       this.chooseCityMode.enabled = true;
       this.chooseCityMode.cities = cities;
+      this.chooseCityMode.source = source;
       return new Promise((resolve) => {
         this.chooseCityMode.resolve = resolve;
       });
@@ -500,7 +573,10 @@ export default {
       if (!city) return;
       // Valida si esta en modo chooseCity
       const cityIndex = this.cities.indexOf(city);
-      if (this.chooseCityMode.enabled && this.chooseCityMode.cities.indexOf(cityIndex) === -1) {
+      if (
+        this.chooseCityMode.enabled &&
+        this.chooseCityMode.cities.indexOf(cityIndex) === -1
+      ) {
         return;
       }
       // Selecciona la city

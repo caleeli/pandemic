@@ -5,13 +5,14 @@ export default {
             text: "Vuelo directo a",
             icon: ["fas fa-plane"],
             handler() {
-                const cities = this.currentCity.connections.filter(i => {
-                    return !this.canNotFly(this.cities[i]);
-                });
-                this.chooseCity(cities).then(selectedCity => {
+                const cities = this.ownedCities.map(c =>
+                    this.cities.indexOf(c)
+                );
+                this.chooseCity(cities, this.currentCity).then(selectedCity => {
                     this.$api.users.call(window.userId, "volarA", {
                         user: this.game.id,
-                        city: selectedCity.id
+                        city: selectedCity.id,
+                        cobrar: selectedCity.id,
                     });
                 });
             },
