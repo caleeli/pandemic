@@ -122,6 +122,14 @@
               d="m91.3 49.3c.028 32.55-27.3 56.7-27.3 56.7s-27.3-24.15-27.3-56.7a27.3 27.3 0 0 1 54.6 0z"
             />
             <circle cx="64" cy="49.3" style="fill: #eeefee" r="16.525" />
+            <text
+              x="64"
+              y="49.3"
+              text-anchor="middle"
+              stroke="black"
+              stroke-width="4px"
+              font-size="30"
+            >{{ player.name }}</text>
           </g>
           <!-- -->
           <pattern
