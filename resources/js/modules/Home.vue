@@ -66,6 +66,14 @@
               canChooseCityCity: chooseCityMode.cities.indexOf(index) > -1,
             }"
           ></circle>
+          <plane
+            v-for="(connection, index) in connections"
+            :key="`transport-${index}`"
+            :x="connection.x1"
+            :y="connection.y1"
+            :xd="connection.x2"
+            :yd="connection.y2"
+          />
           <!--
           <foreignObject
             v-for="(city, index) in cities"
@@ -129,7 +137,9 @@
               stroke="black"
               stroke-width="4px"
               font-size="30"
-            >{{ player.name }}</text>
+            >
+              {{ player.name }}
+            </text>
           </g>
           <!-- -->
           <pattern
@@ -236,7 +246,7 @@
 import world from "../../images/world.jpg";
 import background_bio from "../../images/biological_cells_pattern.jpg";
 import habilidades from "../habilidades";
-import { set } from "lodash";
+import plane from "../../images/plane-solid.svg";
 
 const colors = ["pink", "yellow", "lightgreen", "cyan"];
 const playerColors = ["white", "blue", "red", "green"];
@@ -278,6 +288,8 @@ export default {
       posY: 0,
       selectedCity: null,
       world,
+      ////
+      plane,
     };
   },
   watch: {
