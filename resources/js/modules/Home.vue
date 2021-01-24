@@ -31,7 +31,7 @@
             :y1="connection.y1"
             :x2="connection.x2"
             :y2="connection.y2"
-            :stroke="connectionColor(connection)"
+            stroke="rgba(255,255,255,0.5)"
             class="path"
             stroke-width="0.5"
             :class="{
@@ -73,6 +73,7 @@
             :y="connection.y1"
             :xd="connection.x2"
             :yd="connection.y2"
+            :fill="connectionColor(connection)"
           />
           <!--
           <foreignObject
@@ -452,7 +453,7 @@ export default {
           return t.city1 == connection.city1 && t.city2 == connection.city2;
         }
       );
-      return t ? "rgba(255, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)";
+      return t ? "rgba(255, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.9)";
     },
     cityColor(city) {
       const i = ((city.pivot.infection * 1) / 10) * 255,
