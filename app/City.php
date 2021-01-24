@@ -2,9 +2,7 @@
 
 namespace App;
 
-use App\Events\UpdateMap;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 
 class City extends Model
 {

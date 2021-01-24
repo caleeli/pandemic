@@ -169,4 +169,26 @@ class User extends Authenticatable
             UpdateMap::dispatch($this->game);
         }
     }
+
+    public function construirInstalacion($user, $city, $cobrar)
+    {
+        if (!$this->game) {
+            return;
+        }
+        $user = User::find($user);
+        if (!$cobrar || in_array($cobrar, $user->owned_cities)) {
+            if ($cobrar) {
+                $owned_cities = $user->owned_cities;
+                array_splice($owned_cities, \array_search($cobrar, $owned_cities), 1);
+                $user->owned_cities = $owned_cities;
+                $city = $this->game->cities->where('id', $city)->first();
+                $artifacts = $city->pivot->artifacts;
+                $artifacts['instalacion'] = true;
+                $city->pivot->artifacts = $artifacts;
+                $city->pivot->save();
+            }
+            $user->save();
+            UpdateMap::dispatch($this->game);
+        }
+    }
 }

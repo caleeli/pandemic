@@ -66,6 +66,12 @@
               canChooseCityCity: chooseCityMode.cities.indexOf(index) > -1,
             }"
           ></circle>
+          <instalacion
+            v-for="(city, index) in instalaciones"
+            :key="`icons-${index}`"
+            :x="city.x"
+            :y="city.y"
+          />
           <plane
             v-for="(connection, index) in connections"
             :key="`transport-${index}`"
@@ -75,20 +81,6 @@
             :yd="connection.y2"
             :fill="connectionColor(connection)"
           />
-          <!--
-          <foreignObject
-            v-for="(city, index) in cities"
-            :key="`icons-${index}`"
-            :x="city.x - radius(city)"
-            :y="city.y - radius(city)"
-            :width="radius(city)*2"
-            :height="radius(city)*2"
-          >
-            <div class="icons">
-              <i class="fa fa-ban text-danger" />
-            </div>
-          </foreignObject>
-          -->
           <text
             v-for="(city, index) in cities"
             :key="`text-${index}`"
