@@ -222,7 +222,7 @@
             width="16"
             height="18"
             :stroke="city.color"
-            stroke-width="0.5"
+            stroke-width="1"
             fill="url(#map_focus_small)"
             :transform="`translate(
               ${-((city.x - 4) * 0.003125 * w2 - (302 - idx * 17))},
@@ -453,7 +453,7 @@ export default {
           return t.city1 == connection.city1 && t.city2 == connection.city2;
         }
       );
-      return t ? "rgba(255, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.9)";
+      return t ? "rgb(255, 100, 100)" : "rgb(255, 255, 255)";
     },
     cityColor(city) {
       const i = ((city.pivot.infection * 1) / 10) * 255,
