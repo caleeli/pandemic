@@ -105,18 +105,8 @@ class User extends Authenticatable
         $city = $game->cities[$i];
         $this->city_id = $city->getKey();
         $this->save();
+        $game->addRandomCityToPlayers(3, true);
         $game->runGame();
-        foreach (User::all() as $user) {
-            $user->game_id = $game->id;
-            $owned_cities = [];
-            for ($i=0; $i<3; $i++) {
-                $idx = array_rand($cities);
-                $owned_cities[] = $cities[$idx];
-                \array_splice($cities, $idx, 1);
-            }
-            $user->owned_cities = $owned_cities;
-            $user->save();
-        }
         UpdateMap::dispatch($game);
         return [
             'game_id' => $game->getKey(),
@@ -199,11 +189,25 @@ class User extends Authenticatable
         }
         $game = $this->game;
         $city = $game->cities->where('id', $city)->first();
-        $city->pivot->infection = max(0, $city->pivot->infection - $cantidad);
         $a = $city->pivot->artifacts;
-        $a['tratamiento'] = $game->time + $time;
-        $city->pivot->artifacts = $a;
-        $city->pivot->save();
-        UpdateMap::dispatch($this->game);
+        if (empty($a['tratamiento']) || $a['tratamiento'] <= $game->time) {
+            $city->pivot->infection = max(0, $city->pivot->infection - $cantidad);
+            $a['tratamiento'] = $game->time + $time;
+            $city->pivot->artifacts = $a;
+            $city->pivot->save();
+            UpdateMap::dispatch($this->game);
+        }
+    }
+
+    public function addOwnedCity($city)
+    {
+        if (in_array($city->id, $this->owned_cities)) {
+            return false;
+        }
+        $owned_cities = $this->owned_cities;
+        $owned_cities[] = $city->id;
+        $this->owned_cities = $owned_cities;
+        $city->putArtifact('owner', $this->id);
+        return true;
     }
 }

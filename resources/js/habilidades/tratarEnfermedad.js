@@ -4,7 +4,7 @@ export default {
             text: "Tratar enfermedad",
             icon: ["fas fa-medkit"],
             handler() {
-                this.$api.users.call(window.userId, "tratarEnfermedad", {
+                return this.$api.users.call(window.userId, "tratarEnfermedad", {
                     city: this.currentCity.id,
                     cantidad: 1,
                     time: 1

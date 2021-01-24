@@ -87,6 +87,9 @@ class RunGame implements ShouldQueue
         }
         $game->time++;
         $game->transmissions = $transmissions;
+        if ($game->time % 5 === 0) {
+            $game->addRandomCityToPlayers(1);
+        }
         $game->save();
         UpdateMap::dispatch($game);
         ///

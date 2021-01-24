@@ -193,7 +193,7 @@
                   :key="`hab-${index}`"
                   v-show="handleCondition(hab)"
                   @click.stop="handleHabilidad(hab)"
-                  :disabled="handleRunning(hab)"
+                  :disabled="hab.handling || handleRunning(hab)"
                   :title="hab.text"
                 >
                   <i
@@ -275,6 +275,7 @@ export default {
       gameId: 0,
       habilidades: [],
       messages: [],
+      observers: [],
       playerColors,
       players: [],
       posX: 0,
@@ -333,6 +334,7 @@ export default {
             (c) => c.id == this.game.attributes.city_id
           );
         }
+        this.observers.forEach((obs) => obs());
       },
     },
     "$root.user": {
@@ -416,6 +418,18 @@ export default {
     },
   },
   methods: {
+    wait(time) {
+      if (!this.$game.attributes) return;
+      let resolve,
+        waitFor = this.$game.attributes.time * 1 + time;
+      const promise = new Promise((res) => (resolve = res));
+      this.observers.push(() => {
+        if (this.$game.attributes.time * 1 >= waitFor) {
+          resolve();
+        }
+      });
+      return promise;
+    },
     chooseCity(cities = null, source) {
       this.chooseCityMode.enabled = true;
       this.chooseCityMode.cities = cities;
@@ -434,7 +448,15 @@ export default {
       return hab.condition.apply(this);
     },
     handleHabilidad(hab) {
-      return hab.handler.apply(this);
+      const result = hab.handler.apply(this);
+      if (typeof result.then === "function") {
+        hab.handling = true;
+        result.then((res) => {
+          hab.handling = false;
+          return res;
+        });
+      }
+      return result;
     },
     connectionColor(connection) {
       if (!this.game.relationships) {
@@ -628,7 +650,7 @@ export default {
 .btn-secondary:focus {
   background-color: #142e3dda;
   border-color: #a28626;
-  box-shadow: none!important;
+  box-shadow: none !important;
 }
 .map-pan {
   position: relative;

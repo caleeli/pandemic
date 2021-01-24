@@ -38,4 +38,11 @@ class City extends Model
             return $city->toArray();
         }
     }
+
+    public function putArtifact($key, $value)
+    {
+        $artifacts = $this->pivot->artifacts;
+        $artifacts[$key] = $value;
+        $this->pivot->artifacts = $artifacts;
+    }
 }

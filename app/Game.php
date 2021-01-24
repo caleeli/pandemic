@@ -64,4 +64,34 @@ class Game extends Model
     {
         RunGame::dispatch($this)->delay(now()->addSeconds(5));
     }
+
+    public function addRandomCityToPlayers($count = 1, $clear = false, $max = 5)
+    {
+        $cities = [];
+        foreach ($this->cities as $city) {
+            if (empty($city->pivot->artifacts['owned'])) {
+                $cities[] = $city;
+            }
+        }
+        for ($i=0; $i < $count; $i++) {
+            foreach ($this->players as $player) {
+                if ($i === 0 && $clear) {
+                    $player->owned_cities = [];
+                }
+                if (count($player->owned_cities) >= $max) {
+                    continue;
+                }
+                while (true) {
+                    $index = array_rand($cities);
+                    $city = $cities[$index];
+                    if ($player->addOwnedCity($city)) {
+                        $player->save();
+                        $city->pivot->save();
+                        \array_splice($cities, $index, 1);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
