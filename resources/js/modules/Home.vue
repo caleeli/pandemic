@@ -625,6 +625,11 @@ export default {
 </script>
 
 <style>
+.btn-secondary:focus {
+  background-color: #142e3dda;
+  border-color: #a28626;
+  box-shadow: none!important;
+}
 .map-pan {
   position: relative;
   width: 320px;

@@ -1,11 +1,8 @@
-import image from "../../images/cuarentena.jpg";
-
 export default {
     mounted() {
         this.habilidades.push({
             text: "Cuarentena 14 dias",
             icon: ["fas fa-biohazard"],
-            image,
             handler() {
                 this.$api.users.call(window.userId, "cuarentena", {
                     city: this.selectedCity.id,

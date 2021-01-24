@@ -16,7 +16,7 @@ export default {
                 });
             },
             condition() {
-                return this.currentCity.pivot.artifacts.instalacion;
+                return this.currentCity && this.currentCity.pivot.artifacts.instalacion;
             },
             running() {}
         });

@@ -191,4 +191,19 @@ class User extends Authenticatable
             UpdateMap::dispatch($this->game);
         }
     }
+
+    public function tratarEnfermedad($city, $cantidad, $time)
+    {
+        if (!$this->game) {
+            return;
+        }
+        $game = $this->game;
+        $city = $game->cities->where('id', $city)->first();
+        $city->pivot->infection = max(0, $city->pivot->infection - $cantidad);
+        $a = $city->pivot->artifacts;
+        $a['tratamiento'] = $game->time + $time;
+        $city->pivot->artifacts = $a;
+        $city->pivot->save();
+        UpdateMap::dispatch($this->game);
+    }
 }
