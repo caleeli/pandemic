@@ -32,6 +32,7 @@
         "coredump/jdd-flow": "dev-master",
         "coredump/jdd-pacman": "dev-master",
         "coredump/jdd-theme": "dev-master",
+        "doctrine/dbal": "^2.12",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^7.0",
         "laravel/horizon": "^4.3",
