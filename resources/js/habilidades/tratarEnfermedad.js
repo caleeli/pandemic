@@ -11,7 +11,11 @@ export default {
                 });
             },
             condition() {
-                return this.currentCity && this.currentCity.pivot.infection > 0;
+                return (
+                    this.currentCity &&
+                    this.currentCity === this.selectedCity &&
+                    this.currentCity.pivot.infection > 0
+                );
             },
             running() {
                 return (
