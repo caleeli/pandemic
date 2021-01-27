@@ -19,7 +19,12 @@
             stroke-width="2px"
             dy=".3em"
           >
-            Time: {{ game.relationships.game.attributes.time }}
+            Time:
+            {{
+              game.relationships &&
+              game.relationships.game &&
+              game.relationships.game.attributes.time
+            }}
           </text>
           <text x="280" y="4" font-size="5" stroke-width="2px" dy=".3em">
             Infection: {{ totalInfection }} %
@@ -154,10 +159,10 @@
           <pattern
             id="background"
             patternUnits="userSpaceOnUse"
-            :width="`120px`"
-            :height="`80px`"
+            width="120px"
+            height="80px"
           >
-            <image :href="background_bio" :width="`120px`" :height="`80px`" />
+            <image :href="background_bio" width="120px" height="80px" />
           </pattern>
           <rect
             x="-1"
@@ -181,7 +186,7 @@
               136
             )})`"
           ></circle>
-          <foreignObject :x="64" :y="142" :width="280" :height="18">
+          <foreignObject :x="64" :y="142" width="280px" height="18px">
             <div class="d-flex flex-row">
               <div class="bg-text" v-if="selectedCity">
                 Infection:
@@ -210,7 +215,7 @@
             :key="`user-city-${city.id}`"
             :x="(city.x - 4) * 0.003125 * w2"
             :y="(city.y - 4) * 0.00625 * h2"
-            @click.stop="selectedCity = city"
+            @click.stop="selectCity(city)"
             width="16"
             height="18"
             :stroke="city.color"
@@ -244,6 +249,7 @@ import plane from "../../images/plane-solid.svg";
 const colors = ["pink", "yellow", "lightgreen", "cyan"];
 const playerColors = ["white", "blue", "red", "green"];
 const editMode = false;
+const REFRESH_TIME = 3000;
 
 function random(colors) {
   return colors[Math.floor(Math.random() * colors.length)];
@@ -296,12 +302,12 @@ export default {
     game: {
       deep: true,
       handler() {
+        if (!this.game.relationships || !this.game.relationships.game) {
+          return;
+        }
         this.players.splice(0);
         this.messages.splice(0);
         this.gameId = this.game.attributes.game_id;
-        if (!this.game.relationships.game) {
-          return;
-        }
         this.game.relationships.game.attributes.cities.forEach((dbC, index) => {
           dbC.x = dbC.x * 1;
           dbC.y = dbC.y * 1;
@@ -459,7 +465,7 @@ export default {
       return result;
     },
     connectionColor(connection) {
-      if (!this.game.relationships) {
+      if (!this.game.relationships || !this.game.relationships.game) {
         return "rgba(255, 255, 255, 0.5)";
       }
       const t = this.game.relationships.game.attributes.transmissions.find(
@@ -572,7 +578,7 @@ export default {
       return newPt;
     },
     clickMap(event) {
-      this.selectCity(event);
+      this.clickCity(event);
       if (this.editMode) {
         this.placeCity(event);
       }
@@ -594,7 +600,7 @@ export default {
       this.posX = pos.x;
       this.posY = pos.y;*/
     },
-    selectCity(event) {
+    clickCity(event) {
       const pos = this.getPosition(event);
       let min, city;
       this.cities.forEach((c) => {
@@ -607,6 +613,9 @@ export default {
       });
       if (!city) return;
       // Valida si esta en modo chooseCity
+      this.selectCity(city);
+    },
+    selectCity(city) {
       const cityIndex = this.cities.indexOf(city);
       if (
         this.chooseCityMode.enabled &&
@@ -641,7 +650,7 @@ export default {
     });
     setInterval(() => {
       this.refreshMap();
-    }, 2000);
+    }, REFRESH_TIME);
   },
 };
 </script>
