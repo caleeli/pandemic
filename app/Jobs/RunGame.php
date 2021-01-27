@@ -51,14 +51,12 @@ class RunGame implements ShouldQueue
         $game->cities->keyBy('id');
         $transmissions = [];
         foreach ($game->cities as $city) {
-            $rnd = \random_int(0, 2);
-            if ($rnd) {
-                continue;
-            }
             $cuarentena = ($city->pivot->artifacts['cuarentena'] ?? 0) > $game->time;
-            if ($city->pivot->infection > 0 && $city->pivot->infection < 10 && !$cuarentena) {
+            if ($city->pivot->infection > 0 && $city->pivot->infection < 10 && !$cuarentena && rand(1, 100) <= $game->infectividad) {
                 $city->pivot->infection = min(10, $city->pivot->infection + 1);
-                $city->pivot->save();
+            }
+            if ($city->pivot->infection > 0 && rand(1, 100) > $game->resistencia) {
+                $city->pivot->infection = max(0, $city->pivot->infection - 1);
             }
             // Transmision por fronteras
             $cerrarFronteras = ($city->pivot->artifacts['cerrarFronteras'] ?? 0) > $game->time;
@@ -66,8 +64,7 @@ class RunGame implements ShouldQueue
                 continue;
             }
             for ($i = 0, $l = $city->pivot->infection * 1; $i < $l; $i++) {
-                $rnd = \random_int(0, 2);
-                if ($rnd) {
+                if (rand(1, 100) > $game->transmision) {
                     continue;
                 }
                 $index = $city->connections[array_rand($city->connections)];

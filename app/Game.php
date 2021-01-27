@@ -10,6 +10,7 @@ class Game extends Model
     protected $guarded = [];
     protected $attributes = [
         'transmissions' => '[]',
+        'type' => 'demo',
     ];
     protected $appends = [
         'cities',
@@ -17,10 +18,15 @@ class Game extends Model
     ];
     protected $casts = [
         'transmissions' => 'array',
+        'propiedades' => 'array',
     ];
 
     protected static function booted()
     {
+        static::saving(function (Game $game) {
+            $fnType = "fn{$game->type}";
+            $game->$fnType();
+        });
         static::created(function ($game) {
             foreach (City::all() as $city) {
                 $state = new State([
@@ -62,7 +68,7 @@ class Game extends Model
 
     public function runGame()
     {
-        RunGame::dispatch($this)->delay(now()->addSeconds(5));
+        RunGame::dispatch($this)->delay(now()->addSeconds(6));
     }
 
     public function addRandomCityToPlayers($count = 1, $clear = false, $max = 5)
@@ -93,5 +99,12 @@ class Game extends Model
                 }
             }
         }
+    }
+
+    public function fnDemo()
+    {
+        $this->infectividad = min(100, 20 + $this->time);
+        $this->resistencia = min(100, 60 + $this->time);
+        $this->transmision = min(100, 50 + $this->time);
     }
 }
