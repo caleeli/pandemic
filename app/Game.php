@@ -75,7 +75,7 @@ class Game extends Model
     {
         $cities = [];
         foreach ($this->cities as $city) {
-            if (empty($city->pivot->artifacts['owned'])) {
+            if (empty($city->pivot->artifacts['owner'])) {
                 $cities[] = $city;
             }
         }
@@ -106,5 +106,12 @@ class Game extends Model
         $this->infectividad = min(100, 20 + $this->time);
         $this->resistencia = min(100, 60 + $this->time);
         $this->transmision = min(100, 50 + $this->time);
+    }
+
+    public function addPropiedad($key, $value)
+    {
+        $propiedades = $this->propiedades;
+        $propiedades[$key] = $value;
+        $this->propiedades = $propiedades;
     }
 }

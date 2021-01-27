@@ -26,6 +26,11 @@
               game.relationships.game.attributes.time
             }}
           </text>
+          <foreignObject x="4" y="8" width="48px" height="8px" v-if="cura">
+            <div style="font-size: 4px">
+              <i class="fas fa-shield-virus text-success"></i> CURA
+            </div>
+          </foreignObject>
           <text x="280" y="4" font-size="5" stroke-width="2px" dy=".3em">
             Infection: {{ totalInfection }} %
           </text>
@@ -351,6 +356,9 @@ export default {
     },
   },
   computed: {
+    cura() {
+      return this.$game && this.$game.attributes && this.$game.attributes.propiedades.cura;
+    },
     chooseConnections() {
       const connections = [];
       if (this.chooseCityMode.enabled && this.chooseCityMode.source) {

@@ -151,9 +151,7 @@ class User extends Authenticatable
         if (!$cobrar || in_array($cobrar, $user->owned_cities)) {
             $user->city_id = $city;
             if ($cobrar) {
-                $owned_cities = $user->owned_cities;
-                array_splice($owned_cities, \array_search($cobrar, $owned_cities), 1);
-                $user->owned_cities = $owned_cities;
+                $this->cobrarCity($user, $cobrar);
             }
             $user->save();
             UpdateMap::dispatch($this->game);
@@ -168,9 +166,7 @@ class User extends Authenticatable
         $user = User::find($user);
         if (!$cobrar || in_array($cobrar, $user->owned_cities)) {
             if ($cobrar) {
-                $owned_cities = $user->owned_cities;
-                array_splice($owned_cities, \array_search($cobrar, $owned_cities), 1);
-                $user->owned_cities = $owned_cities;
+                $this->cobrarCity($user, $cobrar);
                 $city = $this->game->cities->where('id', $city)->first();
                 $artifacts = $city->pivot->artifacts;
                 $artifacts['instalacion'] = true;
@@ -199,6 +195,36 @@ class User extends Authenticatable
         }
     }
 
+    public function desarrollarCura()
+    {
+        if (!$this->game) {
+            return;
+        }
+        $minimoRequerido = 5;
+        if (count($this->owned_cities) >= $minimoRequerido) {
+            $cities = City::whereIn('id', $this->owned_cities)->get();
+            $byColor = [];
+            foreach ($cities as $city) {
+                $byColor[$city->color][] = $city;
+            }
+            foreach ($byColor as $group) {
+                if (count($group) >= $minimoRequerido) {
+                    foreach ($group as $i => $city) {
+                        $this->cobrarCity($this, $city->id);
+                        if ($i >= $minimoRequerido) {
+                            break;
+                        }
+                    }
+                    $this->save();
+                    $this->game->addPropiedad('cura', true);
+                    $this->game->save();
+                    UpdateMap::dispatch($this->game);
+                    break;
+                }
+            }
+        }
+    }
+
     public function addOwnedCity($city)
     {
         if (in_array($city->id, $this->owned_cities)) {
@@ -209,5 +235,18 @@ class User extends Authenticatable
         $this->owned_cities = $owned_cities;
         $city->putArtifact('owner', $this->id);
         return true;
+    }
+
+    private function cobrarCity($user, $cityId)
+    {
+        $owned_cities = $user->owned_cities;
+        array_splice($owned_cities, \array_search($cityId, $owned_cities), 1);
+        $user->owned_cities = $owned_cities;
+        $city = $this->game->cities->where('id', $cityId)->first();
+        $artifacts = $city->pivot->artifacts;
+        $artifacts['owner'] = false;
+        $city->pivot->artifacts = $artifacts;
+        $city->pivot->save();
+        return $city;
     }
 }
